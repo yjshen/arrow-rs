@@ -126,13 +126,13 @@ pub trait RowGroupCollection {
     fn column_chunks(&self, i: usize) -> Result<Box<dyn PageIterator>>;
 }
 
-impl RowGroupCollection for Arc<dyn FileReader> {
+impl RowGroupCollection for Box<dyn FileReader> {
     fn schema(&self) -> Result<SchemaDescPtr> {
         Ok(self.metadata().file_metadata().schema_descr_ptr())
     }
 
     fn column_chunks(&self, column_index: usize) -> Result<Box<dyn PageIterator>> {
-        let iterator = FilePageIterator::new(column_index, Arc::clone(self))?;
+        let iterator = FilePageIterator::new(column_index, Box::clone(self))?;
         Ok(Box::new(iterator))
     }
 }

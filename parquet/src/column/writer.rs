@@ -1681,10 +1681,10 @@ mod tests {
         let (bytes_written, _, _) = writer.close().unwrap();
 
         // Read pages and check the sequence
-        let source = FileSource::new(&file, 0, bytes_written as usize);
+        let mut source = FileSource::new(&file, 0, bytes_written as usize);
         let mut page_reader = Box::new(
             SerializedPageReader::new(
-                source,
+                &mut source,
                 data.len() as i64,
                 Compression::UNCOMPRESSED,
                 Int32Type::get_physical_type(),
@@ -1972,10 +1972,10 @@ mod tests {
         assert_eq!(values_written, values.len());
         let (bytes_written, rows_written, column_metadata) = writer.close().unwrap();
 
-        let source = FileSource::new(&file, 0, bytes_written as usize);
+        let mut source = FileSource::new(&file, 0, bytes_written as usize);
         let page_reader = Box::new(
             SerializedPageReader::new(
-                source,
+                &mut source,
                 column_metadata.num_values(),
                 column_metadata.compression(),
                 T::get_physical_type(),

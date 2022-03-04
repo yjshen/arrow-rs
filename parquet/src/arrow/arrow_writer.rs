@@ -753,7 +753,7 @@ mod tests {
 
         let cursor = crate::file::serialized_reader::SliceableCursor::new(buffer);
         let reader = SerializedFileReader::new(cursor).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(reader));
         let mut record_batch_reader = arrow_reader.get_record_reader(1024).unwrap();
 
         let actual_batch = record_batch_reader
@@ -1189,7 +1189,7 @@ mod tests {
         writer.close().unwrap();
 
         let reader = SerializedFileReader::new(file.try_clone().unwrap()).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(reader));
         let mut record_batch_reader = arrow_reader.get_record_reader(1024).unwrap();
 
         let actual_batch = record_batch_reader
@@ -1865,7 +1865,7 @@ mod tests {
         let reader = SerializedFileReader::new(file).unwrap();
         assert_eq!(&row_group_sizes(reader.metadata()), &[200, 200, 50]);
 
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(reader));
         let batches = arrow_reader
             .get_record_reader(100)
             .unwrap()
@@ -2009,7 +2009,7 @@ mod tests {
         // leaving a single row in the second row group
         assert_eq!(&row_group_sizes(reader.metadata()), &[6, 1]);
 
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(reader));
         let batches = arrow_reader
             .get_record_reader(2)
             .unwrap()

@@ -2134,7 +2134,7 @@ mod tests {
 
         // read file back
         let parquet_reader = SerializedFileReader::try_from(file)?;
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
         let read_schema = arrow_reader.get_schema()?;
         assert_eq!(schema, read_schema);
 
@@ -2205,7 +2205,7 @@ mod tests {
 
         // read file back
         let parquet_reader = SerializedFileReader::try_from(file)?;
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
         let read_schema = arrow_reader.get_schema()?;
         assert_eq!(schema, read_schema);
 

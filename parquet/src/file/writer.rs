@@ -980,8 +980,9 @@ mod tests {
             page_writer.close().unwrap();
         }
         {
+            let mut cursor = Cursor::new(&buffer);
             let mut page_reader = SerializedPageReader::new(
-                Cursor::new(&buffer),
+                &mut cursor,
                 total_num_values,
                 codec,
                 physical_type,

@@ -43,7 +43,7 @@ use crate::schema::types::{self, SchemaDescriptor};
 ///
 /// The reader first reads DEFAULT_FOOTER_SIZE bytes from the end of the file.
 /// If it is not enough according to the length indicated in the footer, it reads more bytes.
-pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaData> {
+pub fn parse_metadata<R: ChunkReader>(chunk_reader: &mut R) -> Result<ParquetMetaData> {
     // check file is large enough to hold footer
     let file_size = chunk_reader.len();
     if file_size < (FOOTER_SIZE as u64) {
@@ -54,10 +54,9 @@ pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaDat
 
     // read and cache up to DEFAULT_FOOTER_READ_SIZE bytes from the end and process the footer
     let default_end_len = min(DEFAULT_FOOTER_READ_SIZE, chunk_reader.len() as usize);
-    let mut default_end_reader = chunk_reader
-        .get_read(chunk_reader.len() - default_end_len as u64, default_end_len)?;
+    chunk_reader.get_read(chunk_reader.len() - default_end_len as u64, default_end_len)?;
     let mut default_len_end_buf = vec![0; default_end_len];
-    default_end_reader.read_exact(&mut default_len_end_buf)?;
+    chunk_reader.read_exact(&mut default_len_end_buf)?;
 
     // check this is indeed a parquet file
     if default_len_end_buf[default_end_len - 4..] != PARQUET_MAGIC {
@@ -89,11 +88,11 @@ pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaDat
         parse_metadata_buffer(&mut default_end_cursor)
     } else {
         // the end of file read by default is not long enough, read missing bytes
-        let complementary_end_read = chunk_reader.get_read(
+        chunk_reader.get_read(
             file_size - footer_metadata_len as u64,
             FOOTER_SIZE + metadata_len as usize - default_end_len,
         )?;
-        parse_metadata_buffer(&mut complementary_end_read.chain(default_end_cursor))
+        parse_metadata_buffer(&mut chunk_reader.chain(default_end_cursor))
     }
 }
 
@@ -169,8 +168,8 @@ mod tests {
 
     #[test]
     fn test_parse_metadata_size_smaller_than_footer() {
-        let test_file = tempfile::tempfile().unwrap();
-        let reader_result = parse_metadata(&test_file);
+        let mut test_file = tempfile::tempfile().unwrap();
+        let reader_result = parse_metadata(&mut test_file);
         assert!(reader_result.is_err());
         assert_eq!(
             reader_result.err().unwrap(),
@@ -180,8 +179,8 @@ mod tests {
 
     #[test]
     fn test_parse_metadata_corrupt_footer() {
-        let data = SliceableCursor::new(Arc::new(vec![1, 2, 3, 4, 5, 6, 7, 8]));
-        let reader_result = parse_metadata(&data);
+        let mut data = SliceableCursor::new(Arc::new(vec![1, 2, 3, 4, 5, 6, 7, 8]));
+        let reader_result = parse_metadata(&mut data);
         assert!(reader_result.is_err());
         assert_eq!(
             reader_result.err().unwrap(),
@@ -191,9 +190,9 @@ mod tests {
 
     #[test]
     fn test_parse_metadata_invalid_length() {
-        let test_file =
+        let mut test_file =
             SliceableCursor::new(Arc::new(vec![0, 0, 0, 255, b'P', b'A', b'R', b'1']));
-        let reader_result = parse_metadata(&test_file);
+        let reader_result = parse_metadata(&mut test_file);
         assert!(reader_result.is_err());
         assert_eq!(
             reader_result.err().unwrap(),
@@ -205,9 +204,9 @@ mod tests {
 
     #[test]
     fn test_parse_metadata_invalid_start() {
-        let test_file =
+        let mut test_file =
             SliceableCursor::new(Arc::new(vec![255, 0, 0, 0, b'P', b'A', b'R', b'1']));
-        let reader_result = parse_metadata(&test_file);
+        let reader_result = parse_metadata(&mut test_file);
         assert!(reader_result.is_err());
         assert_eq!(
             reader_result.err().unwrap(),

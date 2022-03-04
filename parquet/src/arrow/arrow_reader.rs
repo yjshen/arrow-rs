@@ -79,7 +79,7 @@ pub trait ArrowReader {
 }
 
 pub struct ParquetFileArrowReader {
-    file_reader: Arc<dyn FileReader>,
+    file_reader: Box<dyn FileReader>,
 }
 
 impl ArrowReader for ParquetFileArrowReader {
@@ -154,7 +154,7 @@ impl ArrowReader for ParquetFileArrowReader {
 }
 
 impl ParquetFileArrowReader {
-    pub fn new(file_reader: Arc<dyn FileReader>) -> Self {
+    pub fn new(file_reader: Box<dyn FileReader>) -> Self {
         Self { file_reader }
     }
 
@@ -352,7 +352,7 @@ mod tests {
         file.rewind().unwrap();
 
         let parquet_reader = SerializedFileReader::try_from(file).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
         let record_reader = arrow_reader.get_record_reader(2).unwrap();
 
         let batches = record_reader.collect::<ArrowResult<Vec<_>>>().unwrap();
@@ -585,7 +585,7 @@ mod tests {
             let path = format!("{}/{}_decimal.parquet", testdata, prefix);
             let parquet_reader =
                 SerializedFileReader::try_from(File::open(&path).unwrap()).unwrap();
-            let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+            let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
 
             let mut record_reader = arrow_reader.get_record_reader(32).unwrap();
 
@@ -854,7 +854,7 @@ mod tests {
         file.rewind().unwrap();
 
         let parquet_reader = SerializedFileReader::try_from(file).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
 
         let mut record_reader = arrow_reader
             .get_record_reader(opts.record_batch_size)
@@ -943,13 +943,13 @@ mod tests {
         writer.close()
     }
 
-    fn get_test_reader(file_name: &str) -> Arc<dyn FileReader> {
+    fn get_test_reader(file_name: &str) -> Box<dyn FileReader> {
         let file = get_test_file(file_name);
 
         let reader =
             SerializedFileReader::new(file).expect("Failed to create serialized reader");
 
-        Arc::new(reader)
+        Box::new(reader)
     }
 
     fn get_test_file(file_name: &str) -> File {
@@ -1002,7 +1002,7 @@ mod tests {
         let path = format!("{}/nested_structs.rust.parquet", testdata);
         let parquet_file_reader =
             SerializedFileReader::try_from(File::open(&path).unwrap()).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_file_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_file_reader));
         let record_batch_reader = arrow_reader
             .get_record_reader(60)
             .expect("Failed to read into array!");
@@ -1018,7 +1018,7 @@ mod tests {
         let path = format!("{}/nested_maps.snappy.parquet", testdata);
         let parquet_file_reader =
             SerializedFileReader::try_from(File::open(&path).unwrap()).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_file_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_file_reader));
         let record_batch_reader = arrow_reader
             .get_record_reader(60)
             .expect("Failed to read into array!");
@@ -1062,7 +1062,7 @@ mod tests {
             writer.close().unwrap();
         }
 
-        let file_reader = Arc::new(SerializedFileReader::new(file).unwrap());
+        let file_reader = Box::new(SerializedFileReader::new(file).unwrap());
         let mut batch = ParquetFileArrowReader::new(file_reader);
         let reader = batch.get_record_reader_by_columns(vec![0], 1024).unwrap();
 
@@ -1099,7 +1099,7 @@ mod tests {
 
         let file = SliceableCursor::new(data);
         let file_reader = SerializedFileReader::new(file).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(file_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(file_reader));
 
         let mut record_batch_reader = arrow_reader
             .get_record_reader_by_columns(vec![0], 10)
@@ -1177,7 +1177,7 @@ mod tests {
         file.rewind().unwrap();
 
         let parquet_reader = SerializedFileReader::try_from(file).unwrap();
-        let mut arrow_reader = ParquetFileArrowReader::new(Arc::new(parquet_reader));
+        let mut arrow_reader = ParquetFileArrowReader::new(Box::new(parquet_reader));
 
         let record_reader = arrow_reader.get_record_reader(3).unwrap();
 
