@@ -33,6 +33,8 @@ use crate::file::{
     PARQUET_MAGIC,
 };
 
+use log::error;
+
 use crate::schema::types::{self, SchemaDescriptor};
 
 /// Layout of Parquet file
@@ -54,13 +56,16 @@ pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaDat
 
     // read and cache up to DEFAULT_FOOTER_READ_SIZE bytes from the end and process the footer
     let default_end_len = min(DEFAULT_FOOTER_READ_SIZE, chunk_reader.len() as usize);
+    error!("default_end_len {}, so read start pos is {}", default_end_len, chunk_reader.len() - default_end_len as u64);
     let mut default_end_reader = chunk_reader
         .get_read(chunk_reader.len() - default_end_len as u64, default_end_len)?;
     let mut default_len_end_buf = vec![0; default_end_len];
     default_end_reader.read_exact(&mut default_len_end_buf)?;
+    error!("reading last {} bytes {:?}", default_end_len, default_len_end_buf);
 
     // check this is indeed a parquet file
     if default_len_end_buf[default_end_len - 4..] != PARQUET_MAGIC {
+        error!("parquet last bytes {:?}", default_len_end_buf[default_end_len - 4..]);
         return Err(general_err!("Invalid Parquet file. Corrupt footer"));
     }
 

@@ -48,6 +48,7 @@ serde_json = { version = "1.0", features = ["preserve_order"], optional = true }
 rand = "0.8"
 futures = { version = "0.3", optional = true }
 tokio = { version = "1.0", optional = true, default-features = false, features = ["macros", "fs", "rt", "io-util"] }
+log = "^0.4"
 
 [dev-dependencies]
 criterion = "0.3"

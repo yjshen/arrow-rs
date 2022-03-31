@@ -156,7 +156,9 @@ impl ReadOptionsBuilder {
         assert!(start < end);
         let predicate = move |rg: &RowGroupMetaData, _: usize| {
             let mid = get_midpoint_offset(rg);
-            mid >= start && mid < end
+            let x = mid >= start && mid < end;
+            println!("mid: {}, {}[{}, {}]", mid, x, start, end);
+            x
         };
         self.predicates.push(Box::new(predicate));
         self
