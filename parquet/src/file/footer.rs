@@ -61,7 +61,7 @@ pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaDat
         .get_read(chunk_reader.len() - default_end_len as u64, default_end_len)?;
     let mut default_len_end_buf = vec![0; default_end_len];
     default_end_reader.read_exact(&mut default_len_end_buf)?;
-    error!("reading last {} bytes {:?}", default_end_len, default_len_end_buf);
+    error!("reading last {} bytes", default_end_len);
 
     // check this is indeed a parquet file
     if default_len_end_buf[default_end_len - 4..] != PARQUET_MAGIC {
