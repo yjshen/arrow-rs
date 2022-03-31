@@ -65,7 +65,7 @@ pub fn parse_metadata<R: ChunkReader>(chunk_reader: &R) -> Result<ParquetMetaDat
 
     // check this is indeed a parquet file
     if default_len_end_buf[default_end_len - 4..] != PARQUET_MAGIC {
-        error!("parquet last bytes {:?}", default_len_end_buf[default_end_len - 4..]);
+        error!("parquet last bytes {} {} {} {}", default_len_end_buf[default_end_len -4], default_len_end_buf[default_end_len -3], default_len_end_buf[default_end_len -2], default_len_end_buf[default_end_len -1]);
         return Err(general_err!("Invalid Parquet file. Corrupt footer"));
     }
 
