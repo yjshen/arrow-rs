@@ -87,6 +87,10 @@ impl std::fmt::Display for InMemory {
 
 #[async_trait]
 impl ObjectStore for InMemory {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
         self.storage
             .write()

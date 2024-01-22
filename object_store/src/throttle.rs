@@ -145,6 +145,10 @@ impl<T: ObjectStore> std::fmt::Display for ThrottledStore<T> {
 
 #[async_trait]
 impl<T: ObjectStore> ObjectStore for ThrottledStore<T> {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
         sleep(self.config().wait_put_per_call).await;
 

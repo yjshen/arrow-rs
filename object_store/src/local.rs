@@ -268,6 +268,10 @@ impl Config {
 
 #[async_trait]
 impl ObjectStore for LocalFileSystem {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
         let path = self.config.path_to_filesystem(location)?;
         maybe_spawn_blocking(move || {

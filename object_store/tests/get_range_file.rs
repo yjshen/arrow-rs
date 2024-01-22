@@ -40,6 +40,10 @@ impl std::fmt::Display for MyStore {
 
 #[async_trait]
 impl ObjectStore for MyStore {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, path: &Path, data: Bytes) -> object_store::Result<()> {
         self.0.put(path, data).await
     }

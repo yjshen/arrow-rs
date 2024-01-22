@@ -210,6 +210,10 @@ impl AmazonS3 {
 
 #[async_trait]
 impl ObjectStore for AmazonS3 {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
         self.client.put_request(location, bytes, &()).await?;
         Ok(())

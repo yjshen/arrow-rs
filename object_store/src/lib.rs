@@ -285,6 +285,9 @@ pub type MultipartId = String;
 /// Universal API to multiple object store services.
 #[async_trait]
 pub trait ObjectStore: std::fmt::Display + Send + Sync + Debug + 'static {
+    ///
+    fn as_any(&self) -> &dyn std::any::Any;
+
     /// Save the provided bytes to the specified location
     ///
     /// The operation is guaranteed to be atomic, it will either successfully
@@ -531,6 +534,10 @@ macro_rules! as_ref_impl {
     ($type:ty) => {
         #[async_trait]
         impl ObjectStore for $type {
+            fn as_any(&self) -> &dyn std::any::Any {
+                self
+            }
+
             async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
                 self.as_ref().put(location, bytes).await
             }

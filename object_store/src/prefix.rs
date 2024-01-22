@@ -79,6 +79,10 @@ impl<T: ObjectStore> PrefixStore<T> {
 
 #[async_trait::async_trait]
 impl<T: ObjectStore> ObjectStore for PrefixStore<T> {
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+
     async fn put(&self, location: &Path, bytes: Bytes) -> Result<()> {
         let full_path = self.full_path(location);
         self.inner.put(&full_path, bytes).await
